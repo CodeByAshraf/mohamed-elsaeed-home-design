@@ -1,0 +1,994 @@
+@import "tailwindcss";
+
+/* Arabic faces (SIL Open Font License, see src/app/fonts/OFL-Amiri.txt and OFL-Alexandria.txt).
+   Amiri, a classical high-contrast naskh, partners Bodoni Moda in headings; Alexandria, a geometric
+   sans, partners Jost in text. The unicode-range limits them to Arabic characters, so Latin words and
+   numbers inside Arabic text keep the brand's Latin fonts, and English pages never download them. */
+@font-face {
+  font-family: "Amiri ME";
+  src: url("/fonts/amiri-arabic-400.woff2") format("woff2");
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 112%;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+@font-face {
+  font-family: "Amiri ME";
+  src: url("/fonts/amiri-arabic-700.woff2") format("woff2");
+  font-weight: 600 900;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 112%;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+@font-face {
+  font-family: "Alexandria ME";
+  src: url("/fonts/alexandria-arabic-wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 94%;
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC;
+}
+
+@theme {
+  --color-basalt: #1d1f1c;
+  --color-basalt-deep: #141613;
+  --color-travertine: #ece6db;
+  --color-limestone: #bdb4a6;
+  --color-smoke: #8f887d; /* 4.7:1 on basalt: meets WCAG AA for small text */
+  --color-bronze: #b28f5e; /* the brand gold, sampled from the official logo */
+
+  /* The Arabic face comes first: its unicode-range means it only ever draws Arabic letters. */
+  --font-display: "Amiri ME", var(--font-bodoni), "Didot", "Bodoni 72", Georgia, serif;
+  --font-sans: "Alexandria ME", var(--font-jost), "Helvetica Neue", Arial, sans-serif;
+
+  --ease-architect: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-basalt);
+    color: var(--color-travertine);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-weight: 350;
+  }
+
+  ::selection {
+    background: var(--color-bronze);
+    color: var(--color-basalt-deep);
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--color-bronze);
+    outline-offset: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0s !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      transition-delay: 0s !important;
+    }
+  }
+}
+
+/* Directional underline (`underline` in components/motion/classes.ts): a 1px line that draws in
+   from where reading starts and leaves where it ends. Hover only on devices that can hover. */
+:root {
+  --line-enter: left;
+  --line-exit: right;
+}
+[dir="rtl"] {
+  --line-enter: right;
+  --line-exit: left;
+  /* Positions of decorative light pools, mirrored for right-to-left pages */
+  --light-x: 0%;
+  --light-x-soft: 15%;
+  --light-x-start: 90%;
+}
+.draw-line {
+  scale: 0 1;
+  transform-origin: var(--line-exit);
+  transition: scale 0.5s var(--ease-architect);
+}
+@media (hover: hover) {
+  .group:hover .draw-line {
+    scale: 1 1;
+    transform-origin: var(--line-enter);
+  }
+}
+.group:focus-visible .draw-line {
+  scale: 1 1;
+  transform-origin: var(--line-enter);
+}
+
+/* Scroll indicator: a short segment travelling down a hairline */
+@keyframes scroll-travel {
+  0% { transform: translateY(-100%); }
+  60%, 100% { transform: translateY(300%); }
+}
+.scroll-travel {
+  animation: scroll-travel 2.6s var(--ease-architect) infinite;
+}
+
+/* Logo sheen: a band of light passes across the gold monogram when its link is hovered or focused.
+   Transforms on SVG elements are in viewBox units (the mark is ~632 wide). */
+.mark-sheen {
+  transform: translateX(0);
+}
+@keyframes mark-sheen {
+  from { transform: translateX(0); }
+  to { transform: translateX(1100px); }
+}
+@media (hover: hover) {
+  .group:hover .mark-sheen {
+    animation: mark-sheen 1.1s var(--ease-architect) both;
+  }
+}
+.group:focus-visible .mark-sheen {
+  animation: mark-sheen 1.1s var(--ease-architect) both;
+}
+
+/* ------------------------------------------------------------------------------------------
+   Motion without waiting for JavaScript
+   ------------------------------------------------------------------------------------------
+   Entrance motion (above the fold) runs as CSS animations that start on first paint.
+   Scroll reveals hide content only when `html.js` is set (by an inline script in <head>),
+   and a tiny observer in that same script marks each element [data-shown] as it enters the
+   view. If scripts never run, everything is simply visible. Reduced motion is handled by the
+   global rule at the top of this file (all durations collapse to ~0). */
+
+/* Entrance: plays once, on first paint. Set --enter-delay (and optionally --enter-y).
+   --intro-delay (set while the homepage intro plays, see "Intro" below) holds everything back until it clears. */
+@keyframes enter-rise { from { opacity: 0; transform: translateY(var(--enter-y, 18px)); } }
+@keyframes enter-fade { from { opacity: 0; } }
+@keyframes enter-draw { from { transform: scaleX(0); } }
+@keyframes enter-line { from { transform: translateY(110%); } }
+@keyframes enter-word { from { transform: translateY(105%) rotate(5deg); } }
+@keyframes enter-panel { to { transform: scaleY(0); } }
+@keyframes enter-settle { from { transform: scale(1.16); } to { transform: scale(1.06); } }
+@keyframes light-pass { from { background-position: 100% 0%; } to { background-position: 0% 0%; } }
+
+.enter-rise { animation: enter-rise 1.1s var(--ease-architect) calc(var(--enter-delay, 0s) + var(--intro-delay, 0s)) both; }
+.enter-fade { animation: enter-fade 1s ease calc(var(--enter-delay, 0s) + var(--intro-delay, 0s)) both; }
+.enter-line { animation: enter-line 1.25s var(--ease-architect) calc(var(--enter-delay, 0s) + var(--intro-delay, 0s)) both; }
+.enter-draw { animation: enter-draw 1.3s var(--ease-architect) calc(var(--enter-delay, 0s) + var(--intro-delay, 0s)) both; }
+.enter-panel { animation: enter-panel 1.2s cubic-bezier(0.76, 0, 0.24, 1) calc(var(--enter-delay, 0s) + var(--intro-delay, 0s)) both; }
+.enter-settle { animation: enter-settle 3.2s var(--ease-architect) calc(var(--enter-delay, 0s) + var(--intro-delay, 0s)) both; }
+/* Headline words: rise out of their mask (clipping hides them, so opacity never has to), then
+   one band of warm light passes across. Transform and background-position only: no layout work. */
+.enter-word {
+  animation:
+    enter-word 1.2s var(--ease-architect) calc(var(--enter-delay, 0s) + var(--intro-delay, 0s)) both,
+    light-pass 1.8s cubic-bezier(0.45, 0, 0.2, 1) calc(var(--light-delay, 2s) + var(--intro-delay, 0s)) both;
+}
+
+/* Scroll reveals */
+[data-reveal="fade"] {
+  transition:
+    opacity 1.1s var(--ease-architect) var(--reveal-delay, 0s),
+    transform 1.1s var(--ease-architect) var(--reveal-delay, 0s);
+}
+html.js [data-reveal="fade"]:not([data-shown]) { opacity: 0; transform: translateY(var(--reveal-y, 24px)); }
+
+[data-reveal="lines"] .reveal-line { transition: transform 1.25s var(--ease-architect) var(--reveal-delay, 0s); }
+html.js [data-reveal="lines"]:not([data-shown]) .reveal-line { transform: translateY(110%); }
+
+/* "draw" and "curtain" animate a CHILD, never the observed element itself. A target that is
+   clipped away or scaled to zero can be treated as never visible by the browser's observer
+   (engines differ), and then it would never be revealed. The observed element keeps its full box. */
+[data-reveal="draw"] > .reveal-draw { transform-origin: left; transition: transform 1.6s var(--ease-architect) var(--reveal-delay, 0s); }
+html.js [data-reveal="draw"]:not([data-shown]) > .reveal-draw { transform: scaleX(0); }
+
+/* The shown state is an explicit inset(0): a transition from inset() to `none` would jump, not wipe. */
+[data-reveal="curtain"] > * { clip-path: inset(0 0 0 0); transition: clip-path 1.5s cubic-bezier(0.76, 0, 0.24, 1) var(--reveal-delay, 0s); }
+[data-reveal="curtain"] .reveal-zoom { transition: clip-path 1.5s cubic-bezier(0.76, 0, 0.24, 1) var(--reveal-delay, 0s), scale 2.4s var(--ease-architect) var(--reveal-delay, 0s); }
+html.js [data-reveal="curtain"]:not([data-shown]) > * { clip-path: inset(100% 0% 0% 0%); }
+html.js [data-reveal="curtain"]:not([data-shown]) .reveal-zoom { scale: 1.1; }
+
+/* Hero lamp (see src/components/home/useHeroLamp.ts): the pointer carries a warm pool of light,
+   and the room comes into focus where it falls. The script moves three small pre-drawn layers by
+   transform only, so following the pointer never restyles or repaints the rest of the hero. */
+.hero-lamp-focus,
+.hero-lamp-glow {
+  opacity: 0;
+  transition: opacity 0.7s var(--ease-architect);
+  pointer-events: none;
+}
+.hero-lamp-focus.lamp-on,
+.hero-lamp-glow.lamp-on {
+  opacity: 1;
+}
+.hero-lamp-glow {
+  z-index: -15;
+  overflow: hidden;
+}
+.hero-lamp-dot {
+  position: absolute;
+  left: -420px;
+  top: -420px;
+  width: 840px;
+  height: 840px;
+  background: radial-gradient(circle at center, rgb(255 214 160 / 0.1), transparent 70%);
+  transform: translate3d(-999px, -999px, 0);
+  will-change: transform;
+}
+/* A soft circular window (static mask) that slides to the pointer… */
+.hero-lamp-window {
+  position: absolute;
+  left: -260px;
+  top: -260px;
+  width: 520px;
+  height: 520px;
+  overflow: hidden;
+  transform: translate3d(-999px, -999px, 0);
+  -webkit-mask-image: radial-gradient(circle at center, #000 0%, rgb(0 0 0 / 0.6) 25%, transparent 50%);
+  mask-image: radial-gradient(circle at center, #000 0%, rgb(0 0 0 / 0.6) 25%, transparent 50%);
+  will-change: transform;
+}
+/* …while the sharp photograph inside moves the opposite way, so it stays aligned with the room.
+   Deliberately NOT its own layer (no will-change): a full-size hidden layer made the browser's
+   first commit very expensive on slow machines. Drawn into the small window layer instead,
+   it measured 0 ms of main-thread blocking with a 4x slower CPU. */
+.hero-lamp-room {
+  position: absolute;
+  left: 260px;
+  top: 260px;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Touch screens have no pointer to follow, so a soft warm light drifts slowly across the room.
+   Transform-only animation: it runs on the GPU and costs the page nothing. */
+.hero-ambient {
+  display: none;
+}
+@media (hover: none) {
+  .hero-ambient {
+    display: block;
+    z-index: -15;
+    overflow: hidden;
+  }
+  .hero-ambient::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    width: 120vmax;
+    height: 120vmax;
+    margin: -60vmax 0 0 -60vmax;
+    background: radial-gradient(circle at center, rgb(255 214 160 / 0.13), transparent 45%);
+    opacity: 0;
+    /* Starts after the hero's entrance has finished, so it never competes with loading:
+       the room appears first, then the light drifts in. */
+    animation:
+      hero-ambient-in 2s ease-out 2.4s forwards,
+      hero-ambient 16s ease-in-out 2.4s infinite alternate;
+    will-change: transform;
+  }
+}
+@keyframes hero-ambient-in {
+  to { opacity: 1; }
+}
+@keyframes hero-ambient {
+  from { transform: translate3d(-22%, -8%, 0); }
+  to { transform: translate3d(22%, 10%, 0); }
+}
+
+/* Project titles: each line must stay on one line, whatever the project's name. The size is the
+   usual responsive size, but never more than the available width divided by the longest line
+   (measured: Bodoni Moda at this weight uses at most 0.553em per character; 0.58 leaves margin).
+   --title-chars is set on the heading; its container is the column it sits in. */
+.title-fit {
+  font-size: clamp(2.6rem, calc((100vw - 3rem) / 7.2), 7.5rem);
+}
+@media (min-width: 640px) {
+  .title-fit {
+    font-size: clamp(2.6rem, 7.4vw, 7.5rem);
+  }
+}
+@supports (width: 1cqw) {
+  .title-fit {
+    font-size: min(clamp(2.6rem, calc((100vw - 3rem) / 7.2), 7.5rem), calc(100cqw / (var(--title-chars, 12) * 0.58)));
+  }
+  @media (min-width: 640px) {
+    .title-fit {
+      font-size: min(clamp(2.6rem, 7.4vw, 7.5rem), calc(100cqw / (var(--title-chars, 12) * 0.58)));
+    }
+  }
+}
+
+/* ------------------------------------------------------------------------------------------
+   Arabic typography
+   ------------------------------------------------------------------------------------------
+   Arabic letters join, so they must never be letter-spaced; there is no italic or capitals; and
+   Amiri's tall marks need more line height than Bodoni. Components mark small labels with the
+   `eyebrow` class; everything else is adjusted here, so the components stay language-neutral. */
+html[lang="ar"] body {
+  font-weight: 330;
+}
+html[lang="ar"] [class*="tracking-"]:not(:lang(en)),
+html[lang="ar"] .eyebrow {
+  letter-spacing: 0 !important;
+}
+html[lang="ar"] .eyebrow {
+  font-size: max(13px, 1em);
+  text-transform: none;
+}
+html[lang="ar"] .italic {
+  font-style: normal;
+}
+html[lang="ar"] .font-display {
+  line-height: 1.45 !important;
+}
+/* Display headings: Amiri needs room above and below the line for its marks and descenders. */
+html[lang="ar"] .hero-title,
+html[lang="ar"] h2.font-display,
+html[lang="ar"] .title-fit,
+html[lang="ar"] .contact-title {
+  line-height: 1.32 !important;
+}
+html[lang="ar"] .contact-title {
+  text-transform: none;
+}
+/* The hero must still fit one screen: a tighter line, with the masks (below) keeping the marks whole. */
+html[lang="ar"] .hero-title {
+  line-height: 1.16 !important;
+  font-size: clamp(1.9rem, calc((100vw - 3rem) / 7.4), 3.4rem);
+}
+@media (min-width: 640px) {
+  html[lang="ar"] .hero-title {
+    font-size: clamp(3.2rem, min(7.4vw, 9.5vh), 6.2rem);
+  }
+}
+/* Line masks (MaskLines, HeroHeadline) clip each line: give Arabic letters their full height. */
+html[lang="ar"] .overflow-hidden.pb-\[0\.1em\],
+html[lang="ar"] .overflow-hidden.pb-\[0\.14em\] {
+  padding-top: 0.1em;
+  padding-bottom: 0.42em;
+  margin-top: -0.1em;
+  margin-bottom: -0.42em;
+}
+/* Headline words rise with a slight tilt toward the reading start. Their colour is a clipped
+   background, which only paints inside the word's box: extend the box over Amiri's deep descenders. */
+html[lang="ar"] .enter-word {
+  animation-name: enter-word-rtl, light-pass;
+  padding: 0.12em 0.04em 0.4em;
+  margin: -0.12em -0.04em -0.4em;
+}
+@keyframes enter-word-rtl { from { transform: translateY(105%) rotate(-5deg); } }
+/* The opening quotation mark faces the text it introduces. */
+[dir="rtl"] .quote-mark {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+
+/* ------------------------------------------------------------------------------------------
+   Intro: "From the first line" (components/home/IntroOverlay.tsx)
+   ------------------------------------------------------------------------------------------
+   Shown only when the <head> script adds `intro` to <html>: homepage, first visit in this tab,
+   motion allowed. Timeline (seconds): sheet grid 0–0.9 · monogram line 0.15–1.35, gold 1.1–1.6 ·
+   letters land 0.4–2.1 · dimension line and discipline 1.6–2.2 · sheet clears 2.25–2.75, over the
+   hero's own dark partitions, which then open. Transform, opacity and filter only. */
+html.intro {
+  --intro-delay: 2.75s;
+}
+.intro-sheet {
+  display: none;
+}
+html.intro .intro-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--color-basalt-deep);
+  cursor: pointer;
+  animation: intro-hide 0.5s ease 2.25s both;
+}
+/* A warm pool of light gathering behind the name */
+html.intro .intro-sheet::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 110vmax;
+  height: 110vmax;
+  margin: -55vmax 0 0 -55vmax;
+  background: radial-gradient(closest-side, rgb(178 143 94 / 0.15), rgb(178 143 94 / 0.07) 35%, rgb(178 143 94 / 0.02) 65%, transparent);
+  animation: intro-glow 2.2s var(--ease-architect) 0.2s both;
+}
+@keyframes intro-hide { to { opacity: 0; visibility: hidden; } }
+@keyframes intro-glow { from { opacity: 0; transform: scale(0.6); } }
+
+/* The drawing sheet */
+.intro-grid {
+  position: absolute;
+  inset: 0;
+  animation: intro-out 0.45s ease 2.05s forwards;
+}
+.intro-rule {
+  position: absolute;
+  background: rgb(236 230 219 / 0.09);
+}
+.intro-rule-h {
+  left: 0;
+  right: 0;
+  height: 1px;
+  transform-origin: left;
+  animation: intro-draw-x 1.1s var(--ease-architect) calc(var(--i) * 0.08s) both;
+}
+.intro-rule-v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform-origin: top;
+  animation: intro-draw-y 1.1s var(--ease-architect) calc(var(--i) * 0.08s) both;
+}
+.intro-cross {
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  margin: -7px 0 0 -7px;
+  animation: intro-pop 0.6s var(--ease-architect) calc(0.55s + var(--i) * 0.06s) both;
+}
+.intro-cross::before,
+.intro-cross::after {
+  content: "";
+  position: absolute;
+  background: var(--color-bronze);
+  opacity: 0.7;
+}
+.intro-cross::before { left: 7px; top: 0; width: 1px; height: 15px; }
+.intro-cross::after { top: 7px; left: 0; height: 1px; width: 15px; }
+.intro-note {
+  position: absolute;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-smoke);
+  white-space: nowrap;
+  animation: enter-fade 0.9s ease 0.75s both;
+}
+@keyframes intro-draw-x { from { transform: scaleX(0); } }
+@keyframes intro-draw-y { from { transform: scaleY(0); } }
+@keyframes intro-pop { from { opacity: 0; transform: scale(0.2) rotate(45deg); } }
+@keyframes intro-out { to { opacity: 0; } }
+
+/* The composition */
+.intro-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1.5rem;
+  animation: intro-lift 0.55s cubic-bezier(0.55, 0, 0.75, 0) 2.1s forwards;
+}
+@keyframes intro-lift { to { opacity: 0; transform: translateY(-18px) scale(0.985); filter: blur(4px); } }
+
+.intro-mark {
+  width: auto;
+  height: clamp(56px, 9vh, 84px);
+  overflow: visible;
+  color: var(--color-bronze);
+}
+.intro-mark-line {
+  fill: none;
+  stroke: var(--color-bronze);
+  stroke-width: 2.2;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: intro-trace 1.25s cubic-bezier(0.65, 0, 0.35, 1) 0.15s forwards;
+}
+.intro-mark-fill {
+  fill: currentColor;
+  animation: enter-fade 0.6s ease 1.1s both;
+}
+.intro-mark-sheen {
+  transform: translateX(0) skewX(-18deg);
+  animation: intro-sheen 1s var(--ease-architect) 1.55s both;
+}
+@keyframes intro-trace { to { stroke-dashoffset: 0; } }
+@keyframes intro-sheen { from { transform: translateX(0) skewX(-18deg); } to { transform: translateX(1100px) skewX(-18deg); } }
+
+.intro-name {
+  margin-top: clamp(1.4rem, 3.4vh, 2.2rem);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: 0.55em;
+  row-gap: 0.1em;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 6.4vw, 4.6rem);
+  font-variation-settings: "wght" 560, "opsz" 16;
+  line-height: 1.1;
+  letter-spacing: 0.14em;
+  color: var(--color-travertine);
+  /* letter-spacing also trails the last letter: pull it back so the name is truly centred */
+  margin-right: -0.14em;
+}
+.intro-word {
+  display: inline-flex;
+}
+.intro-letter {
+  display: inline-block;
+  animation: intro-letter 1.25s var(--ease-architect) var(--d) both;
+  will-change: transform, opacity, filter;
+}
+/* Phones: the same flight without the blur, which is the costly part to draw on a small processor. */
+@media (max-width: 640px) {
+  .intro-letter { animation-name: intro-letter-lite; will-change: transform, opacity; }
+}
+@keyframes intro-letter-lite {
+  0% { opacity: 0.01; transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(var(--s)); color: var(--color-bronze); }
+  35% { opacity: 1; }
+  100% { opacity: 1; transform: none; color: var(--color-travertine); }
+}
+@keyframes intro-letter {
+  0% {
+    /* Not quite 0: the sheet's name counts as painted from the first frame (it is what the visitor
+       sees first), instead of holding back the page's Largest Contentful Paint until it lands. */
+    opacity: 0.01;
+    transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(var(--s));
+    filter: blur(10px);
+    color: var(--color-bronze);
+  }
+  35% { opacity: 1; }
+  80% { filter: blur(0); }
+  100% { opacity: 1; transform: none; filter: none; color: var(--color-travertine); }
+}
+
+/* Dimension line: drawn outward from the centre, with angled end ticks */
+.intro-dim {
+  position: relative;
+  display: block;
+  width: min(68vw, 34rem);
+  height: 12px;
+  margin-top: clamp(1rem, 2.4vh, 1.6rem);
+  animation: enter-draw 0.9s var(--ease-architect) 1.6s both;
+}
+.intro-dim-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgb(236 230 219 / 0.4);
+}
+.intro-dim-tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 12px;
+  background: rgb(236 230 219 / 0.75);
+  transform: rotate(45deg);
+}
+.intro-dim-tick-start { left: 0; }
+.intro-dim-tick-end { right: 0; }
+
+.intro-tagline {
+  margin-top: clamp(0.9rem, 2vh, 1.3rem);
+  font-family: var(--font-sans);
+  font-size: clamp(10px, 1.2vw, 12.5px);
+  letter-spacing: 0.42em;
+  margin-right: -0.42em;
+  text-transform: uppercase;
+  color: var(--color-limestone);
+  animation: intro-tagline 1s var(--ease-architect) 1.7s both;
+}
+@keyframes intro-tagline { from { opacity: 0; letter-spacing: 0.9em; margin-right: -0.9em; } }
+
+/* Skipped (click, tap, scroll or key): everything clears at once, quickly. */
+html.intro.intro-out .intro-sheet { animation: intro-hide 0.4s ease 0.15s both; }
+html.intro.intro-out .intro-content { animation: intro-lift 0.35s ease forwards; }
+html.intro.intro-out .intro-grid { animation: intro-out 0.3s ease forwards; }
+
+/* ------------------------------------------------------------------------------------------
+   Plan to reality (components/home/PlanSection.tsx)
+   ------------------------------------------------------------------------------------------
+   Base rules draw the finished plan (this is what browsers without scroll-driven animations, and
+   visitors who prefer reduced motion, see). The block further down pins the section and scrubs every
+   stage with the scroll position, entirely in CSS. Each drawn group carries its range as --a / --b. */
+.plan-svg { overflow: visible; }
+.plan-svg text { font-family: var(--font-sans); }
+.pl-wall-outer > * { fill: none; stroke: var(--color-travertine); stroke-width: 9; stroke-linecap: butt; stroke-linejoin: miter; }
+.pl-wall-inner > * { fill: none; stroke: rgb(236 230 219 / 0.85); stroke-width: 5; stroke-linecap: butt; }
+.pl-window path { fill: none; stroke: rgb(236 230 219 / 0.55); stroke-width: 1; }
+.pl-dim > * { fill: none; stroke: rgb(178 143 94 / 0.75); stroke-width: 1; }
+.pl-dim-text text { fill: var(--color-bronze); font-size: 12px; letter-spacing: 0.08em; }
+.pl-door > * { fill: none; stroke: rgb(236 230 219 / 0.6); stroke-width: 1.2; }
+.pl-furn > * { fill: none; stroke: rgb(236 230 219 / 0.42); stroke-width: 1.2; }
+.pl-furn > .pl-rug { stroke: rgb(236 230 219 / 0.16); }
+.pl-room { fill: var(--color-travertine); font-size: 13px; letter-spacing: 0.04em; }
+.pl-area { fill: var(--color-bronze); font-size: 11px; letter-spacing: 0.06em; }
+.pl-north circle,
+.pl-north path { fill: none; stroke: rgb(236 230 219 / 0.45); stroke-width: 1; }
+.pl-north .pl-north-arrow { fill: var(--color-bronze); stroke: none; }
+.pl-north text { fill: var(--color-smoke); font-size: 11px; letter-spacing: 0.12em; }
+.pl-north .pl-title { fill: var(--color-limestone); }
+.pl-cove > * { fill: none; stroke: #ffcf8f; stroke-width: 2.2; }
+.plan-stage + .plan-stage { margin-top: 1.75rem; }
+.plan-photo,
+.plan-progress { display: none; }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .plan {
+      height: 460vh;
+      view-timeline-name: --plan;
+    }
+    .plan-sticky {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      overflow: hidden;
+    }
+    .pl-draw > *,
+    .pl-fade,
+    .plan-lines,
+    .plan-photo,
+    .plan-stage,
+    .plan-tick,
+    .plan-bar,
+    .plan-hint {
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: --plan;
+    }
+    .pl-draw > * {
+      /* butt caps: a square cap would show as a dot at the start of every sub-path before it draws */
+      stroke-linecap: butt;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      animation-name: pl-draw;
+      animation-range: contain var(--a) contain var(--b);
+    }
+    .pl-fade {
+      animation-name: pl-fade;
+      animation-range: contain var(--a) contain var(--b);
+    }
+    /* While the light comes on, the drawing steps back */
+    .plan-lines {
+      animation-name: pl-dim;
+      animation-range: contain 50% contain 60%;
+    }
+    /* The finished room wipes in from the reading start */
+    .plan-photo {
+      display: block;
+      animation-name: pl-wipe;
+      animation-range: contain 74% contain 92%;
+    }
+    .plan-stages { position: relative; min-height: 9.5rem; }
+    .plan-stage { position: absolute; inset-inline: 0; top: 0; }
+    .plan-stage + .plan-stage { margin-top: 0; }
+    .plan-stage-1 { animation-name: pl-stage-first; animation-range: contain 0% contain 26%; }
+    .plan-stage-2 { animation-name: pl-stage; animation-range: contain 22% contain 51%; }
+    .plan-stage-3 { animation-name: pl-stage; animation-range: contain 47% contain 76%; }
+    .plan-stage-4 { animation-name: pl-stage-last; animation-range: contain 72% contain 100%; }
+    .plan-tick-1 { animation-name: pl-tick; animation-range: contain 0% contain 25%; }
+    .plan-tick-2 { animation-name: pl-tick; animation-range: contain 25% contain 50%; }
+    .plan-tick-3 { animation-name: pl-tick; animation-range: contain 50% contain 75%; }
+    .plan-tick-4 { animation-name: pl-tick; animation-range: contain 75% contain 100%; }
+    .plan-bar {
+      transform-origin: var(--line-enter);
+      animation-name: pl-bar;
+      animation-range: contain 0% contain 100%;
+    }
+    .plan-hint { animation-name: pl-hint; animation-range: contain 0% contain 10%; }
+    @media (min-width: 1024px) {
+      .plan-progress { display: block; }
+    }
+  }
+}
+@keyframes pl-draw { to { stroke-dashoffset: 0; } }
+@keyframes pl-fade { from { opacity: 0; } }
+@keyframes pl-dim { to { opacity: 0.5; } }
+@keyframes pl-wipe {
+  from { clip-path: inset(0 var(--wipe-end, 100%) 0 var(--wipe-start, 0%)); }
+  to { clip-path: inset(0 0 0 0); }
+}
+[dir="rtl"] .plan-photo { --wipe-end: 0%; --wipe-start: 100%; }
+@keyframes pl-stage-first {
+  0%, 82% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-16px); }
+}
+@keyframes pl-stage {
+  0% { opacity: 0; transform: translateY(16px); }
+  16%, 84% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-16px); }
+}
+@keyframes pl-stage-last {
+  0% { opacity: 0; transform: translateY(16px); }
+  16%, 100% { opacity: 1; transform: none; }
+}
+@keyframes pl-tick {
+  0%, 100% { color: var(--color-smoke); }
+  8%, 92% { color: var(--color-bronze); }
+}
+@keyframes pl-bar { from { transform: scaleX(0); } }
+@keyframes pl-hint { to { opacity: 0; } }
+
+/* ------------------------------------------------------------------------------------------
+   Survey marks on project covers (components/work/ProjectFeature.tsx)
+   ------------------------------------------------------------------------------------------
+   Crop corners close in and a dimension line with the project's area draws across the top, just
+   after the photograph has risen into view (driven by the same [data-shown] as every reveal). */
+.survey-c {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 0 solid rgb(236 230 219 / 0.9);
+  transition: opacity 0.8s ease 0.55s, transform 1.1s var(--ease-architect) 0.55s;
+}
+.survey-tl { top: 14px; left: 14px; border-top-width: 1.5px; border-left-width: 1.5px; }
+.survey-tr { top: 14px; right: 14px; border-top-width: 1.5px; border-right-width: 1.5px; }
+.survey-bl { bottom: 14px; left: 14px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.survey-br { bottom: 14px; right: 14px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+.survey-dim {
+  position: absolute;
+  top: 14px;
+  left: 50px;
+  right: 50px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.survey-dim-line {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+  background: rgb(236 230 219 / 0.6);
+  transition: transform 1.3s var(--ease-architect) 0.75s;
+}
+.survey-dim-line::before,
+.survey-dim-line::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  width: 1px;
+  height: 11px;
+  background: rgb(236 230 219 / 0.9);
+  transform: rotate(45deg);
+}
+.survey-dim-line::before { left: 0; }
+.survey-dim-line::after { right: 0; }
+.survey-dim-label {
+  position: relative;
+  padding: 3px 10px;
+  border-radius: 2px;
+  background: rgb(20 22 19 / 0.6);
+  backdrop-filter: blur(4px);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-travertine);
+  transition: opacity 0.7s ease 1.3s;
+}
+html.js [data-reveal]:not([data-shown]) .survey-c { opacity: 0; transform: scale(1.8); }
+html.js [data-reveal]:not([data-shown]) .survey-dim-line { transform: scaleX(0); }
+html.js [data-reveal]:not([data-shown]) .survey-dim-label { opacity: 0; }
+
+/* ------------------------------------------------------------------------------------------
+   Scroll ruler (components/layout/ScrollRuler.tsx): ticks every 8px, a longer one every 40px (1 m)
+   ------------------------------------------------------------------------------------------ */
+.scroll-ruler-track {
+  background-image:
+    linear-gradient(to bottom, rgb(236 230 219 / 0.9) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(236 230 219 / 0.45) 1px, transparent 1px);
+  background-size: 100% 40px, 50% 8px;
+  background-repeat: repeat-y;
+  background-position-x: 0, 100%;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent);
+  animation: enter-fade 1s ease calc(1.8s + var(--intro-delay, 0s)) both;
+}
+[dir="rtl"] .scroll-ruler-track { background-position-x: 0, 0; }
+.scroll-ruler-reading {
+  opacity: 0;
+  transform: translate(6px, -50%);
+  transition: opacity 0.5s ease, transform 0.6s var(--ease-architect);
+}
+[dir="rtl"] .scroll-ruler-reading { transform: translate(-6px, -50%); }
+.scroll-ruler-reading.is-measuring {
+  opacity: 1;
+  transform: translate(0, -50%);
+  transition-duration: 0.2s, 0.3s;
+}
+
+/* ------------------------------------------------------------------------------------------
+   Palette (components/work/ProjectPalette.tsx): chips rise one after another, like cards dealt
+   onto a table; on hover a chip lifts. The homepage bar's segments grow in from the reading start.
+   ------------------------------------------------------------------------------------------ */
+.palette-colour {
+  transform-origin: bottom;
+  transition: transform 1s var(--ease-architect) calc(0.15s + var(--k) * 0.08s), box-shadow 0.4s ease;
+}
+html.js .palette:not([data-shown]) .palette-colour { transform: scaleY(0); }
+@media (hover: hover) {
+  .palette-chip:hover .palette-colour {
+    transform: translateY(-6px);
+    transition-delay: 0s;
+    box-shadow: 0 18px 30px -18px rgb(0 0 0 / 0.7);
+  }
+}
+.palette-chip:focus-visible .palette-colour { transform: translateY(-6px); transition-delay: 0s; }
+.palette-bar > span {
+  transform-origin: var(--line-enter);
+  transition: transform 0.9s var(--ease-architect) calc(0.35s + var(--k) * 0.07s);
+}
+html.js [data-reveal]:not([data-shown]) .palette-bar > span { transform: scaleX(0); }
+
+/* ------------------------------------------------------------------------------------------
+   Custom cursor (components/layout/CustomCursor.tsx), mouse devices only
+   ------------------------------------------------------------------------------------------ */
+.cursor-layer { pointer-events: none; position: fixed; inset: 0; z-index: 100; }
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  will-change: transform;
+}
+html.cursor-in .cursor-dot,
+html.cursor-in .cursor-ring { opacity: 1; }
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--color-bronze);
+}
+.cursor-ring-line,
+.cursor-disc {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  transition: transform 0.5s var(--ease-architect), opacity 0.3s ease, background-color 0.3s ease;
+}
+/* The ring: a hairline circle, drawn in difference blend so it reads on dark and light ground */
+.cursor-ring-line {
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border: 1px solid rgb(236 230 219 / 0.75);
+  mix-blend-mode: difference;
+}
+.cursor-layer[data-mode="link"] .cursor-ring-line { transform: scale(1.55); border-color: rgb(236 230 219 / 0.95); }
+html.cursor-down .cursor-ring-line { transform: scale(0.8); }
+/* The disc: hidden until the pointer is over a photograph */
+.cursor-disc {
+  width: 92px;
+  height: 92px;
+  margin: -46px 0 0 -46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(236 230 219 / 0.94);
+  backdrop-filter: blur(4px);
+  transform: scale(0);
+}
+.cursor-label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-basalt);
+  padding-inline-start: 0.18em;
+}
+html[lang="ar"] .cursor-label { letter-spacing: 0; padding: 0; font-size: 14px; }
+.cursor-layer[data-mode="view"] .cursor-disc,
+.cursor-layer[data-mode="open"] .cursor-disc,
+.cursor-layer[data-mode="drag"] .cursor-disc { transform: scale(1); }
+.cursor-layer[data-mode="view"] .cursor-ring-line,
+.cursor-layer[data-mode="open"] .cursor-ring-line,
+.cursor-layer[data-mode="drag"] .cursor-ring-line { transform: scale(0.4); opacity: 0; }
+.cursor-layer[data-mode="view"] ~ .cursor-dot,
+.cursor-layer[data-mode="view"] .cursor-dot,
+.cursor-layer[data-mode="open"] .cursor-dot,
+.cursor-layer[data-mode="drag"] .cursor-dot { opacity: 0; }
+html.cursor-down .cursor-disc { transform: scale(0.9); }
+/* Over photographs the disc replaces the system pointer */
+html.has-cursor [data-cursor] { cursor: none; }
+
+/* ------------------------------------------------------------------------------------------
+   Project covers on the homepage (components/work/ProjectFeature.tsx)
+   ------------------------------------------------------------------------------------------
+   1. Entrance: the shared curtain (above) lifts from the bottom while the photo settles from a zoom.
+   2. Grade: bright site photographs (white walls, lit ceilings) on a dark page are tiring to look at,
+      so each cover rests under a soft warm grade and vignette that ties it to the brand's palette.
+      Hovering lifts the grade, as if the lights came up. Opacity only: no live image filters.
+   3. Drift: while the page scrolls, the photo moves slightly slower than its frame (scroll-driven,
+      CSS only; skipped where unsupported or with reduced motion).
+   4. Depth: a long, soft shadow separates the frame from the page. */
+.cover-frame {
+  box-shadow: 0 50px 90px -50px rgb(0 0 0 / 0.75);
+}
+.cover-frame .reveal-zoom {
+  transition:
+    clip-path 1.5s cubic-bezier(0.76, 0, 0.24, 1) var(--reveal-delay, 0s),
+    scale 2.6s var(--ease-architect) var(--reveal-delay, 0s);
+}
+html.js .cover-frame[data-reveal="curtain"]:not([data-shown]) .reveal-zoom { scale: 1.14; }
+.cover-photo {
+  transition: scale 1.6s var(--ease-architect);
+}
+@media (hover: hover) {
+  .group:hover .cover-photo { scale: 1.035; }
+}
+.cover-grade {
+  background:
+    radial-gradient(120% 95% at 50% 45%, transparent 55%, rgb(20 22 19 / 0.38) 100%),
+    linear-gradient(to top, rgb(20 22 19 / 0.32), transparent 38%),
+    linear-gradient(rgb(178 143 94 / 0.10), rgb(178 143 94 / 0.10)),
+    linear-gradient(rgb(20 22 19 / 0.14), rgb(20 22 19 / 0.14));
+  transition: opacity 1.2s var(--ease-architect);
+}
+@media (hover: hover) {
+  .group:hover .cover-grade { opacity: 0.35; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .cover-drift {
+      animation: cover-drift linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+@keyframes cover-drift {
+  from { translate: 0 -4.5%; }
+  to { translate: 0 4.5%; }
+}
+
+/* The language switch's "عربي" on English pages: system Arabic font (see Navbar.tsx) */
+.lang-switch-ar { font-family: var(--font-jost), system-ui, "Segoe UI", "Noto Sans Arabic", "Geeza Pro", sans-serif; }
+
+/* FAQ (components/home/FaqSection.tsx): the plus turns into a cross, the answer eases open where
+   the browser can animate to an automatic height, and simply appears elsewhere. */
+.faq-icon { transition: transform 0.5s var(--ease-architect), background-color 0.3s ease, border-color 0.3s ease; }
+.faq-item[open] .faq-icon { transform: rotate(45deg); border-color: var(--color-bronze); }
+@supports (interpolate-size: allow-keywords) {
+  .faq-item { interpolate-size: allow-keywords; }
+  .faq-item::details-content {
+    height: 0;
+    overflow: clip;
+    transition: height 0.5s var(--ease-architect), content-visibility 0.5s allow-discrete;
+  }
+  .faq-item[open]::details-content { height: auto; }
+}
+
+/* Italic display text (taglines, quotes) uses the separately loaded italic face (src/app/fonts.ts). */
+.font-display.italic {
+  font-family: "Amiri ME", var(--font-bodoni-italic), "Didot", Georgia, serif;
+}
+
+/* Entrance for an inner page's main heading: identical to enter-rise, but never fully transparent, so
+   the browser records it as the Largest Contentful Paint (see components/sections/PageHeader.tsx). */
+@keyframes enter-rise-lcp { from { opacity: 0.01; transform: translateY(var(--enter-y, 18px)); } }
+.enter-rise.lcp-safe { animation-name: enter-rise-lcp; }

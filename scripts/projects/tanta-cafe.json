@@ -1,0 +1,50 @@
+{
+  "slug": "tanta-cafe",
+  "source_dir": "/tmp/proj2/موقع طنطا - كافيه",
+  "images": [
+    {
+      "id": "cover",
+      "file": "IMG-20250103-WA0007.jpg"
+    },
+    {
+      "id": "cafe-floor",
+      "file": "IMG-20250103-WA0041.jpg"
+    },
+    {
+      "id": "name-wall",
+      "file": "IMG-20250103-WA0003.jpg"
+    },
+    {
+      "id": "seating-stair",
+      "file": "IMG-20250103-WA0013.jpg"
+    },
+    {
+      "id": "dining-hall",
+      "file": "IMG-20250103-WA0028.jpg"
+    },
+    {
+      "id": "upper-level",
+      "file": "IMG-20250103-WA0025.jpg"
+    },
+    {
+      "id": "window-swings",
+      "file": "IMG-20250103-WA0030.jpg"
+    },
+    {
+      "id": "banquette",
+      "file": "IMG-20250103-WA0055.jpg"
+    },
+    {
+      "id": "banquette-detail",
+      "file": "IMG-20250103-WA0031.jpg"
+    },
+    {
+      "id": "upper-wall",
+      "file": "IMG-20250103-WA0038.jpg"
+    },
+    {
+      "id": "exterior",
+      "file": "IMG-20250103-WA0050.jpg"
+    }
+  ]
+}

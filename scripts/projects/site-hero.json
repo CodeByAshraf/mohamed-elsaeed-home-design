@@ -1,0 +1,23 @@
+{
+  "slug": "hero",
+  "public_dir": "images/hero",
+  "manifest": "site/hero.images.json",
+  "source_dir": "public/images",
+  "images": [
+    {
+      "id": "living-room",
+      "file": "hero-living-room.jpg",
+      "blur": 3,
+      "brightness": 0.55,
+      "saturation": 0.85
+    },
+    {
+      "id": "living-room-sharp",
+      "file": "hero-living-room.jpg",
+      "brightness": 0.8,
+      "saturation": 0.95,
+      "quality": 70,
+      "_note": "Seen only through the small lamp window and fetched after the page has loaded, so it can be lighter."
+    }
+  ]
+}

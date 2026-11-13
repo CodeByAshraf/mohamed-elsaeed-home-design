@@ -1,0 +1,12 @@
+{
+  "slug": "portrait",
+  "public_dir": "images/portrait",
+  "manifest": "site/portrait.images.json",
+  "source_dir": "public/images",
+  "images": [
+    {
+      "id": "mohamed-elsaeed",
+      "file": "mohamed-elsaeed.webp"
+    }
+  ]
+}

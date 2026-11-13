@@ -1,0 +1,52 @@
+{
+  "slug": "tanta-ashraf",
+  "source_dir": "/tmp/claude-0/-home-claude/e22654db-5917-54f7-915e-1ca55d2d20c0/scratchpad/proj5/src/موقع طنطا - الاشرف",
+  "images": [
+    {
+      "id": "cover",
+      "file": "IMG-20250719-WA0039.jpg",
+      "crop": [
+        0,
+        900,
+        3120,
+        3240
+      ]
+    },
+    {
+      "id": "reception",
+      "file": "IMG-20250719-WA0054.jpg"
+    },
+    {
+      "id": "tv-wall",
+      "file": "IMG-20250719-WA0039.jpg"
+    },
+    {
+      "id": "fluted-wall",
+      "file": "20250804_142005.jpg"
+    },
+    {
+      "id": "timber-columns",
+      "file": "IMG-20250719-WA0084.jpg"
+    },
+    {
+      "id": "framed-door",
+      "file": "IMG-20250719-WA0089.jpg"
+    },
+    {
+      "id": "doorway",
+      "file": "IMG-20250719-WA0092.jpg"
+    },
+    {
+      "id": "corridor",
+      "file": "IMG-20250719-WA0106.jpg"
+    },
+    {
+      "id": "shower",
+      "file": "IMG-20250719-WA0066.jpg"
+    },
+    {
+      "id": "vanity",
+      "file": "IMG-20250719-WA0078.jpg"
+    }
+  ]
+}

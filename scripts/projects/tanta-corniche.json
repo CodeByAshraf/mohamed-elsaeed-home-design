@@ -1,0 +1,52 @@
+{
+  "slug": "tanta-corniche",
+  "source_dir": "/tmp/proj3/موقع طنطا - الكورنيش",
+  "images": [
+    {
+      "id": "cover",
+      "file": "20250723_141612.jpg",
+      "crop": [
+        0,
+        220,
+        2250,
+        1908
+      ]
+    },
+    {
+      "id": "reception",
+      "file": "20250723_141612.jpg"
+    },
+    {
+      "id": "reception-wall",
+      "file": "20250723_141553.jpg"
+    },
+    {
+      "id": "reception-entrance",
+      "file": "20250723_141532.jpg"
+    },
+    {
+      "id": "corridor",
+      "file": "20250723_141708.jpg"
+    },
+    {
+      "id": "room",
+      "file": "20250723_142210.jpg"
+    },
+    {
+      "id": "bathroom-vanity",
+      "file": "20250728_144048.jpg"
+    },
+    {
+      "id": "shower",
+      "file": "20250728_144020.jpg"
+    },
+    {
+      "id": "guest-washroom",
+      "file": "20250730_123712.jpg"
+    },
+    {
+      "id": "kitchen",
+      "file": "IMG-20250823-WA0014.jpg"
+    }
+  ]
+}

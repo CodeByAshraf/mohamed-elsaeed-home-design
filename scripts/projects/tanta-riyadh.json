@@ -1,0 +1,42 @@
+{
+  "slug": "tanta-riyadh",
+  "source_dir": "/tmp/claude-0/-home-claude/e22654db-5917-54f7-915e-1ca55d2d20c0/scratchpad/proj4/src/موقع طنطا - ابراج الرياض",
+  "images": [
+    {
+      "id": "cover",
+      "file": "IMG-20240421-WA0075.jpg"
+    },
+    {
+      "id": "reception",
+      "file": "IMG-20240421-WA0069.jpg"
+    },
+    {
+      "id": "panelled-wall",
+      "file": "IMG-20240421-WA0059.jpg"
+    },
+    {
+      "id": "moulding-wall",
+      "file": "IMG-20240421-WA0061.jpg"
+    },
+    {
+      "id": "entrance",
+      "file": "IMG-20240421-WA0079.jpg"
+    },
+    {
+      "id": "corridor",
+      "file": "IMG-20240421-WA0083.jpg"
+    },
+    {
+      "id": "oak-doors",
+      "file": "IMG-20240421-WA0095.jpg"
+    },
+    {
+      "id": "hallway",
+      "file": "IMG-20240421-WA0057.jpg"
+    },
+    {
+      "id": "bathroom",
+      "file": "20240403_145606.jpg"
+    }
+  ]
+}
